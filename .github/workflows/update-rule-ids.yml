@@ -1,0 +1,32 @@
+name: Update Rule IDs from XML
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-rule-ids:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Run Rule ID Update Script
+        run: python update_rule_ids.py
+
+      - name: Commit Updated rule_ids.json
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add rule_ids.json
+          git diff --cached --quiet || git commit -m "🔄 Auto-update rule_ids.json"
+          git push
