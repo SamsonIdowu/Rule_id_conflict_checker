@@ -26,4 +26,4 @@ jobs:
         run: ls -R
 
       - name: Run Rule ID Conflict Check
-        run: python check_rule_ids.py
+        run: python update_rule_ids.py
