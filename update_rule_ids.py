@@ -1,14 +1,10 @@
-import json
 import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-RULES_DIR = Path("rules")
-RULE_IDS_FILE = Path("rule_ids.json")
-
-def extract_ids_from_xml():
+def extract_rule_ids_from_dir(directory: Path):
     ids = set()
-    for file in RULES_DIR.glob("*.xml"):
+    for file in directory.glob("*.xml"):
         try:
             tree = ET.parse(file)
             root = tree.getroot()
@@ -17,25 +13,23 @@ def extract_ids_from_xml():
                 if rule_id and rule_id.isdigit():
                     ids.add(int(rule_id))
         except ET.ParseError as e:
-            print(f"Warning: Skipping {file.name} (XML parse error: {e})")
+            print(f"⚠️ Skipping {file.name} (XML parse error: {e})")
     return ids
 
-def load_existing_ids():
-    if RULE_IDS_FILE.exists():
-        with open(RULE_IDS_FILE) as f:
-            return set(json.load(f))
-    return set()
-
-def save_ids_to_file(all_ids):
-    with open(RULE_IDS_FILE, "w") as f:
-        json.dump(sorted(all_ids), f, indent=2)
-
 def main():
-    new_ids = extract_ids_from_xml()
-    existing_ids = load_existing_ids()
-    all_ids = new_ids.union(existing_ids)
-    save_ids_to_file(all_ids)
-    print(f"✅ Updated {RULE_IDS_FILE} with {len(all_ids)} unique rule IDs.")
+    pr_rules_dir = Path("rules")
+    main_rules_dir = Path("main_branch_rules")
+
+    pr_ids = extract_rule_ids_from_dir(pr_rules_dir)
+    main_ids = extract_rule_ids_from_dir(main_rules_dir)
+
+    conflicting_ids = pr_ids.intersection(main_ids)
+
+    if conflicting_ids:
+        print(f"❌ Conflict! These rule IDs already exist in main: {sorted(conflicting_ids)}")
+        exit(1)
+    else:
+        print("✅ No rule ID conflicts with main branch.")
 
 if __name__ == "__main__":
     main()
