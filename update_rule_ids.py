@@ -1,26 +1,39 @@
-name: Check Rule ID Conflicts
+import os
+import xml.etree.ElementTree as ET
+from pathlib import Path
+import sys
 
-on:
-  pull_request:
-    branches:
-      - main
+def extract_rule_ids(directory: Path):
+    ids = set()
+    for file in directory.glob("*.xml"):
+        try:
+            tree = ET.parse(file)
+            root = tree.getroot()
+            for rule in root.findall(".//rule"):
+                rule_id = rule.get("id")
+                if rule_id and rule_id.isdigit():
+                    ids.add(int(rule_id))
+        except ET.ParseError as e:
+            print(f"⚠️ Skipping {file.name}: {e}")
+    return ids
 
-jobs:
-  check-rule-ids:
-    runs-on: ubuntu-latest
+def main():
+    pr_rules_dir = Path("rules")
+    main_rules_dir = Path("main_branch/rules")
 
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v3
+    if not pr_rules_dir.exists() or not main_rules_dir.exists():
+        print("❌ Missing rules directory in one or both branches.")
+        sys.exit(1)
 
-      - name: Clone main branch to temp folder
-        run: |
-          git clone --depth=1 --branch=main https://github.com/${{ github.repository }} main_branch
+    pr_ids = extract_rule_ids(pr_rules_dir)
+    main_ids = extract_rule_ids(main_rules_dir)
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    conflicts = pr_ids.intersection(main_ids)
+    if conflicts:
+        print(f"❌ Conflict: these rule IDs already exist in main: {sorted(conflicts)}")
+        sys.exit(1)
+    else:
+        print("✅ No rule ID conflicts found.")
 
-      - name: Run rule ID conflict checker
-        run: python check_rule_ids.py
+if __name__ == "__main__":
+    main()
