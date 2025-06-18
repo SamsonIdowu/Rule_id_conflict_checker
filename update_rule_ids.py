@@ -1,8 +1,9 @@
 import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
+import sys
 
-def extract_rule_ids_from_dir(directory: Path):
+def extract_rule_ids(directory: Path):
     ids = set()
     for file in directory.glob("*.xml"):
         try:
@@ -13,23 +14,26 @@ def extract_rule_ids_from_dir(directory: Path):
                 if rule_id and rule_id.isdigit():
                     ids.add(int(rule_id))
         except ET.ParseError as e:
-            print(f"⚠️ Skipping {file.name} (XML parse error: {e})")
+            print(f"⚠️ Skipping {file.name}: {e}")
     return ids
 
 def main():
     pr_rules_dir = Path("rules")
-    main_rules_dir = Path("main_branch_rules")
+    main_rules_dir = Path("main_branch/rules")
 
-    pr_ids = extract_rule_ids_from_dir(pr_rules_dir)
-    main_ids = extract_rule_ids_from_dir(main_rules_dir)
+    if not pr_rules_dir.exists() or not main_rules_dir.exists():
+        print("❌ Missing rules directory in one or both branches.")
+        sys.exit(1)
 
-    conflicting_ids = pr_ids.intersection(main_ids)
+    pr_ids = extract_rule_ids(pr_rules_dir)
+    main_ids = extract_rule_ids(main_rules_dir)
 
-    if conflicting_ids:
-        print(f"❌ Conflict! These rule IDs already exist in main: {sorted(conflicting_ids)}")
-        exit(1)
+    conflicts = pr_ids.intersection(main_ids)
+    if conflicts:
+        print(f"❌ Conflict: these rule IDs already exist in main: {sorted(conflicts)}")
+        sys.exit(1)
     else:
-        print("✅ No rule ID conflicts with main branch.")
+        print("✅ No rule ID conflicts found.")
 
 if __name__ == "__main__":
     main()
