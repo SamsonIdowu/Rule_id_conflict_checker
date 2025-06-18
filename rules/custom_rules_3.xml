@@ -24,7 +24,7 @@
   </rule>
 
 <!-- Data exfiltration -->
-  <rule id="100103" level="11">
+  <rule id="100021" level="11">
     <decoded_as>macOS_ddaolimaki-daunito</decoded_as>
     <field name="executable_url" type="pcre2">.*Finder</field>
     <field name="sender_identity" type="pcre2">.*</field>
@@ -37,7 +37,7 @@
   </rule>
 
 <!-- Process termination -->
-  <rule id="100021" level="11">
+  <rule id="100022" level="11">
     <match type="pcre2">(?i)Removed job for.*ddaolimaki.*</match>
     <description>FrigidStealer malware process terminated after data exfiltration.</description>
     <mitre>
