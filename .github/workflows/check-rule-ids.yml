@@ -22,5 +22,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt || true
 
+      - name: List all files in repo
+        run: ls -R
+
       - name: Run Rule ID Conflict Check
         run: python check_rule_ids.py
