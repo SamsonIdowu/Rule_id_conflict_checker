@@ -30,7 +30,7 @@
   </rule>
 
   
-  <rule id="100025" level="15" timeframe="300" frequency="2" ignore="100">
+  <rule id="100023" level="15" timeframe="300" frequency="2" ignore="100">
     <if_matched_sid>100020</if_matched_sid>
     <if_sid>100021</if_sid>
     <description>Possible DOGE Big Balls ransomware detected.</description>
